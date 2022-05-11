@@ -3,7 +3,54 @@
   <BasicLayout>
     <template #wrapper>
       <el-card class="box-card">
+        <el-form ref="queryForm" :model="queryParams" :inline="true" label-width="68px">
+          <el-form-item label="图片名称" prop="username">
+            <el-input
+              v-model="queryParams.username"
+              placeholder="输入图片名称"
+              clearable
+              size="small"
+              style="width: 160px"
+              @keyup.enter.native="handleQuery"
+            />
+          </el-form-item>
+          <el-form-item label="状态" prop="status">
+            <el-select v-model="queryParams.status" placeholder="图片状态" clearable size="small" style="width: 160px">
+              <el-option v-for="dict in statusOptions" :key="dict.value" :label="dict.label" :value="dict.value" />
+            </el-select>
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
+            <el-button type="primary" icon="el-icon-upload" size="mini" @click="uploadImage">上传</el-button>
+          </el-form-item>
+        </el-form>
 
+        <el-row :gutter="10" class="mb8">
+          <el-col :span="1.5">
+            <el-button
+              v-permisaction="['admin:sysUser:remove']"
+              type="danger"
+              icon="el-icon-refresh-left"
+              size="mini"
+              :disabled="multiple"
+              @click="handleDelete"
+            >
+              批量停用
+            </el-button>
+          </el-col>
+          <el-col :span="1.5">
+            <el-button
+              v-permisaction="['admin:sysUser:remove']"
+              type="danger"
+              icon="el-icon-delete"
+              size="mini"
+              :disabled="multiple"
+              @click="handleDelete"
+            >
+              批量删除
+            </el-button>
+          </el-col>
+        </el-row>
 
         <el-table
           v-loading="loading"
@@ -12,220 +59,126 @@
           @selection-change="handleSelectionChange"
           @sort-change="handleSortChang"
         >
+          <el-table-column type="selection" width="45" align="center" />
+          <el-table-column label="编号" width="75" prop="id" align="center" sortable="custom" />
           <el-table-column
-            label="标题"
-            header-align="center"
-            align="left"
-            prop="title"
-            fixed="left"
-            width="260px"
-          >
-            <template slot-scope="scope">
-              <span>{{scope.row.id}}</span>
-            </template>
-          </el-table-column>
-
-          <el-table-column
-            label="尺寸"
-            header-align="center"
-            align="left"
-            prop="path"
-            :show-overflow-tooltip="true"
-          >
-           <template slot-scope="scope">
-              <span>{{ "["+scope.row.action +"] "+ scope.row.path }}</span>
-            </template>
-
-          </el-table-column>
-          <el-table-column
-            label="格式"
-            header-align="center"
-            align="left"
-            prop="path"
-            :show-overflow-tooltip="true"
-          >
-           <template slot-scope="scope">
-              <span>{{ "["+scope.row.action +"] "+ scope.row.path }}</span>
-            </template>
-
-          </el-table-column>
-          <el-table-column
-            label="大小"
-            header-align="center"
-            align="left"
-            prop="path"
-            :show-overflow-tooltip="true"
-          >
-            <template slot-scope="scope">
-              <span>{{ "["+scope.row.action +"] "+ scope.row.path }}</span>
-            </template>
-
-          </el-table-column>
-          <el-table-column
-            label="使用次数"
-            header-align="center"
-            align="left"
-            prop="path"
-            :show-overflow-tooltip="true"
-          >
-            <template slot-scope="scope">
-              <span>{{ "["+scope.row.action +"] "+ scope.row.path }}</span>
-            </template>
-
-          </el-table-column>
-          <el-table-column
-            label="上传人"
-            header-align="center"
-            align="left"
-            prop="path"
-            :show-overflow-tooltip="true"
-          >
-            <!-- <template slot-scope="scope">
-              <span>{{ "["+scope.row.action +"] "+ scope.row.path }}</span>
-            </template> -->
-            <template slot-scope="scope">
-              <el-popover trigger="hover" placement="top">
-                <p><span v-if="scope.row.type=='SYS' && scope.row.title!=''"><el-tag type="success">{{ '['+scope.row.type +'] '+ scope.row.title }}</el-tag></span>
-                  <span v-if="scope.row.type!='SYS' && scope.row.title!=''"><el-tag type="">{{ '['+scope.row.type +'] '+scope.row.title }}</el-tag></span>
-                  <span v-if="scope.row.title==''"><el-tag type="danger">暂无</el-tag></span>
-                </p>
-                <p>Handle: {{ scope.row.handle }}</p>
-                <p>Method:
-                  <el-tag v-if="scope.row.action=='GET'">{{ scope.row.action }}</el-tag>
-                  <el-tag v-if="scope.row.action=='POST'" type="success">{{ scope.row.action }}</el-tag>
-                  <el-tag v-if="scope.row.action=='PUT'" type="warning">{{ scope.row.action }}</el-tag>
-                  <el-tag v-if="scope.row.action=='DELETE'" type="danger">{{ scope.row.action }}</el-tag>
-                </p>
-                <p>接口类型: {{ scope.row.type }}</p>
-                <div slot="reference" class="name-wrapper">
-                  <el-tag v-if="scope.row.action=='GET'">{{ scope.row.action }}</el-tag>
-                  <el-tag v-if="scope.row.action=='POST'" type="success">{{ scope.row.action }}</el-tag>
-                  <el-tag v-if="scope.row.action=='PUT'" type="warning">{{ scope.row.action }}</el-tag>
-                  <el-tag v-if="scope.row.action=='DELETE'" type="danger">{{ scope.row.action }}</el-tag>
-                  {{ scope.row.path }}
-                </div>
-              </el-popover>
-            </template>
-          </el-table-column>
-
-          <el-table-column
-            label="创建时间"
+            label="图片名称"
+            width="200"
+            prop="name"
             align="center"
-            prop="createdAt"
-            width="155px"
             sortable="custom"
-          >
+            :show-overflow-tooltip="true"
+          />
+          <el-table-column label="尺寸" align="center">
             <template slot-scope="scope">
-              <span>{{ parseTime(scope.row.createdAt) }}</span>
+              <span>{{ scope.row.width + '*' + scope.row.height }}</span>
             </template>
           </el-table-column>
-          <el-table-column
-            label="操作"
-            align="center"
-            width="80px"
-            class-name="small-padding fixed-width"
-          >
+          <el-table-column label="格式" prop="type" align="center" />
+          <el-table-column label="大小" prop="size" align="center" />
+          <el-table-column label="使用次数" prop="use_num" align="center" />
+          <el-table-column label="上传人" prop="up_name" align="center" />
+          <el-table-column label="状态" width="80" align="center" sortable="custom">
+            <template slot-scope="scope">
+              <el-tag :type="scope.row.status === 0 ? 'danger' : 'success'" disable-transitions>{{
+                scope.row.status === 0 ? '停用' : '正常'
+              }}</el-tag>
+            </template>
+          </el-table-column>
+
+          <el-table-column label="管理" width="160" fix="right" class-name="small-padding fixed-width">
             <template slot-scope="scope">
               <el-button
-                v-permisaction="['admin:sysApi:edit']"
+                v-permisaction="['admin:sysUser:edit']"
                 size="mini"
                 type="text"
-                icon="el-icon-edit"
+                icon="el-icon-search"
                 @click="handleUpdate(scope.row)"
-              >修改
+              >
+                预览
+              </el-button>
+              <el-button
+                v-if="scope.row.status === 1"
+                v-permisaction="['admin:sysUser:resetPassword']"
+                size="mini"
+                type="text"
+                icon="el-icon-refresh-left"
+                @click="handleDelete(scope.row)"
+              >
+                停用
+              </el-button>
+              <el-button
+                v-permisaction="['admin:sysUser:remove']"
+                size="mini"
+                type="text"
+                icon="el-icon-delete"
+                @click="handleResetPwd(scope.row)"
+              >
+                删除
               </el-button>
             </template>
           </el-table-column>
         </el-table>
 
         <pagination
-          v-show="total>0"
+          v-show="total > 0"
           :total="total"
           :page.sync="queryParams.pageIndex"
           :limit.sync="queryParams.pageSize"
           @pagination="getList"
         />
-
-        <!-- 添加或修改对话框 -->
-        <el-drawer
-          ref="drawer"
-          :title="title"
-          :before-close="handleClose"
-          :visible.sync="open"
-          direction="rtl"
-          custom-class="demo-drawer"
-        >
-          <div class="demo-drawer__content">
-            <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-
-              <el-form-item label="Handle" prop="handle">
-                <el-input
-                  v-model="form.handle"
-                  placeholder="handle"
-                />
-              </el-form-item>
-              <el-form-item label="标题" prop="title">
-                <el-input
-                  v-model="form.title"
-                  placeholder="标题"
-                />
-              </el-form-item>
-              <el-form-item label="类型" prop="type">
-                <el-select
-                  v-model="form.type"
-                  placeholder="请选择类型"
-                  clearable
-                  size="small"
-                  @keyup.enter.native="handleQuery"
-                >
-                  <el-option value="SYS">SYS</el-option>
-                  <el-option value="BUS">BUS</el-option>
-                </el-select>
-              </el-form-item>
-              <el-form-item label="Method" prop="action">
-                <el-select
-                  v-model="form.action"
-                  placeholder="请选择方式"
-                  clearable
-                  size="small"
-                  @keyup.enter.native="handleQuery"
-                >
-                  <el-option value="GET">GET</el-option>
-                  <el-option value="POST">POST</el-option>
-                  <el-option value="PUT">PUT</el-option>
-                  <el-option value="DELETE">DELETE</el-option>
-                </el-select>
-              </el-form-item>
-
-              <el-form-item label="地址" prop="path">
-                <el-input
-                  v-model="form.path"
-                  :disabled="isEdit"
-                  placeholder="地址"
-                />
-              </el-form-item>
-
-            </el-form>
-            <div class="demo-drawer__footer">
-              <el-button type="primary" @click="submitForm">确 定</el-button>
-              <el-button @click="cancel">取 消</el-button>
-            </div>
-          </div>
-
-        </el-drawer>
-
       </el-card>
+
+      <!-- 图片上传弹框 -->
+      <el-dialog :title="upload.title" :visible.sync="upload.open" width="400px">
+        <el-form ref="form" :model="form" :rules="rules" label-width="80px">
+          <el-row>
+            <el-col :span="18">
+              <el-form-item label="图片名称" prop="name">
+                <el-input v-model="form.name" placeholder="请输入图片名称" />
+              </el-form-item>
+            </el-col>
+            <!-- <el-col :span="24">
+              <el-form-item label="备注">
+                <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
+              </el-form-item>
+            </el-col> -->
+          </el-row>
+        </el-form>
+        <!-- https://element.eleme.cn/#/zh-CN/component/upload -->
+        <el-upload
+          class="upload-demo"
+          action="https://jsonplaceholder.typicode.com/posts/"
+          :on-preview="handlePreview"
+          :on-remove="handleRemove"
+          :auto-upload="false"
+          :file-list="fileList"
+          list-type="picture"
+        >
+          <el-button size="small" type="primary">点击上传</el-button>
+          <div slot="tip" class="el-upload__tip" style="color: red">只能上传jpg/png文件</div>
+        </el-upload>
+        <!-- <div slot="footer" class="dialog-footer">
+          <el-button type="primary" @click="submitForm">确 定</el-button>
+          <el-button @click="cancel">取 消</el-button>
+        </div> -->
+        <div slot="footer" class="dialog-footer">
+          <el-button type="primary" @click="uploadSubmitForm">确 定</el-button>
+          <el-button @click="uploadCancel">取 消</el-button>
+        </div>
+      </el-dialog>
     </template>
   </BasicLayout>
 </template>
 
 <script>
-import { listBackApi, delBackApi, getBackApi, addBackApi, updateBackApi } from '@/api/admin/sys-back'
+// import { listBackApi, delBackApi, getBackApi, addBackApi, updateBackApi } from '@/api/admin/sys-back'
+import { listBackApi } from '@/api/admin/sys-back'
+import { getToken } from '@/utils/auth'
 
 export default {
   name: 'SysBackManage',
-  components: {
-  },
+  components: {},
   data() {
     return {
       dialog: false,
@@ -244,6 +197,8 @@ export default {
       // 是否显示弹出层
       open: false,
       isEdit: false,
+      // 状态数据字典
+      statusOptions: [],
       // 类型数据字典
       typeOptions: [],
       sysBackList: [],
@@ -258,24 +213,72 @@ export default {
         path: undefined,
         action: undefined,
         parentId: undefined
-
+      },
+      // 用户导入参数
+      upload: {
+        // 是否显示弹出层（用户导入）
+        open: false,
+        // 弹出层标题（用户导入）
+        title: '图片上传',
+        // 是否禁用上传
+        isUploading: false,
+        // 是否更新已经存在的用户数据
+        updateSupport: 0,
+        // 设置上传的请求头部
+        headers: { Authorization: 'Bearer ' + getToken() },
+        // 上传的地址
+        url: process.env.VUE_APP_BASE_API + '/system/user/importData'
       },
       // 表单参数
-      form: {
-      },
+      form: {},
       // 表单校验
       rules: {
-        title: [{ required: true, message: '标题不能为空', trigger: 'blur' }],
-        path: [{ required: true, message: '地址不能为空', trigger: 'blur' }],
-        action: [{ required: true, message: '类型不能为空', trigger: 'blur' }],
-        parentId: [{ required: true, message: '按钮id不能为空', trigger: 'blur' }]
-      }
+        name: [{ required: true, message: '图片名称不能为空', trigger: 'blur' }]
+      },
+      fileList: [
+        {
+          name: 'food.jpeg',
+          url: 'https://fuss10.elemecdn.com/3/63/4e7f3a15429bfda99bce42a18cdd1jpeg.jpeg?imageMogr2/thumbnail/360x360/format/webp/quality/100'
+        },
+        {
+          name: 'food2.jpeg',
+          url: 'https://fuss10.elemecdn.com/3/63/4e7f3a15429bfda99bce42a18cdd1jpeg.jpeg?imageMogr2/thumbnail/360x360/format/webp/quality/100'
+        }
+      ]
     }
   },
   created() {
     this.getList()
+    this.getDicts('sys_normal_disable').then((response) => {
+      this.statusOptions = response.data
+    })
   },
   methods: {
+    handleRemove(file, fileList) {
+      console.log(file, fileList)
+    },
+    handlePreview(file) {
+      console.log(file)
+    },
+    handleExceed(files, fileList) {
+      this.$message.warning(
+        `当前限制选择 3 个文件，本次选择了 ${files.length} 个文件，共选择了 ${files.length + fileList.length} 个文件`
+      )
+    },
+    beforeRemove(file, fileList) {
+      return this.$confirm(`确定移除 ${file.name}？`)
+    },
+    // 图片上传功能
+    uploadImage() {
+      console.log(123)
+      this.upload.open = true
+    },
+    // 上传提交
+    uploadSubmitForm() {},
+    // 上传取消
+    uploadCancel() {
+      this.upload.open = false
+    },
     handleClose(done) {
       // if (this.loading) {
       //   return
@@ -296,12 +299,12 @@ export default {
     /** 查询参数列表 */
     getList() {
       this.loading = true
-      listBackApi(this.queryParams).then(response => {
+      listBackApi(this.queryParams).then((response) => {
+        console.log(response)
         this.sysBackList = response.data.list
         this.total = response.data.count
         this.loading = false
-      }
-      )
+      })
     },
     // 取消按钮
     cancel() {
@@ -364,50 +367,49 @@ export default {
     },
     // 多选框选中数据
     handleSelectionChange(selection) {
-      this.ids = selection.map(item => item.id)
+      this.ids = selection.map((item) => item.id)
       this.single = selection.length !== 1
       this.multiple = !selection.length
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
       this.reset()
-      const id =
-                row.id || this.ids
-      getSysApi(id).then(response => {
-        this.form = response.data
-        this.open = true
-        this.title = '修改接口管理'
-        this.isEdit = true
-      })
+      // const id = row.id || this.ids
+      // getSysApi(id).then((response) => {
+      //   this.form = response.data
+      //   this.open = true
+      //   this.title = '修改接口管理'
+      //   this.isEdit = true
+      // })
     },
     /** 提交按钮 */
-    submitForm: function() {
-      this.$refs['form'].validate(valid => {
-        if (valid) {
-          if (this.form.id !== undefined) {
-            updateSysApi(this.form).then(response => {
-              if (response.code === 200) {
-                this.msgSuccess(response.msg)
-                this.open = false
-                this.getList()
-              } else {
-                this.msgError(response.msg)
-              }
-            })
-          } else {
-            addSysApi(this.form).then(response => {
-              if (response.code === 200) {
-                this.msgSuccess(response.msg)
-                this.open = false
-                this.getList()
-              } else {
-                this.msgError(response.msg)
-              }
-            })
-          }
-        }
-      })
-    },
+    // submitForm: function () {
+    //   this.$refs['form'].validate((valid) => {
+    //     if (valid) {
+    //       if (this.form.id !== undefined) {
+    //         updateSysApi(this.form).then((response) => {
+    //           if (response.code === 200) {
+    //             this.msgSuccess(response.msg)
+    //             this.open = false
+    //             this.getList()
+    //           } else {
+    //             this.msgError(response.msg)
+    //           }
+    //         })
+    //       } else {
+    //         addSysApi(this.form).then((response) => {
+    //           if (response.code === 200) {
+    //             this.msgSuccess(response.msg)
+    //             this.open = false
+    //             this.getList()
+    //           } else {
+    //             this.msgError(response.msg)
+    //           }
+    //         })
+    //       }
+    //     }
+    //   })
+    // },
     /** 删除按钮操作 */
     handleDelete(row) {
       var Ids = (row.id && [row.id]) || this.ids
@@ -416,17 +418,20 @@ export default {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
-      }).then(function() {
-        return delSysApi({ 'ids': Ids })
-      }).then((response) => {
-        if (response.code === 200) {
-          this.msgSuccess(response.msg)
-          this.open = false
-          this.getList()
-        } else {
-          this.msgError(response.msg)
-        }
-      }).catch(function() {})
+      })
+        .then(function() {
+          // return delSysApi({ ids: Ids })
+        })
+        .then((response) => {
+          if (response.code === 200) {
+            this.msgSuccess(response.msg)
+            this.open = false
+            this.getList()
+          } else {
+            this.msgError(response.msg)
+          }
+        })
+        .catch(function() {})
     }
   }
 }
