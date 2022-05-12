@@ -3,6 +3,7 @@
   <BasicLayout>
     <template #wrapper>
       <el-card class="box-card">
+        <!-- 输入栏 -->
         <el-form ref="queryForm" :model="queryParams" :inline="true" label-width="68px">
           <el-form-item label="图片名称" prop="username">
             <el-input
@@ -25,10 +26,11 @@
           </el-form-item>
         </el-form>
 
+        <!-- 批量按钮栏 -->
         <el-row :gutter="10" class="mb8">
           <el-col :span="1.5">
             <el-button
-              v-permisaction="['admin:sysUser:remove']"
+              v-permisaction="['admin:sysBack:stop']"
               type="danger"
               icon="el-icon-refresh-left"
               size="mini"
@@ -40,7 +42,7 @@
           </el-col>
           <el-col :span="1.5">
             <el-button
-              v-permisaction="['admin:sysUser:remove']"
+              v-permisaction="['admin:sysBack:remove']"
               type="danger"
               icon="el-icon-delete"
               size="mini"
@@ -52,6 +54,7 @@
           </el-col>
         </el-row>
 
+        <!-- 表格栏 -->
         <el-table
           v-loading="loading"
           :data="sysBackList"
@@ -89,26 +92,26 @@
           <el-table-column label="管理" width="160" fix="right" class-name="small-padding fixed-width">
             <template slot-scope="scope">
               <el-button
-                v-permisaction="['admin:sysUser:edit']"
+                v-permisaction="['admin:sysBack:preview']"
                 size="mini"
                 type="text"
                 icon="el-icon-search"
-                @click="handleUpdate(scope.row)"
+                @click="handlePreview(scope.row.cover)"
               >
                 预览
               </el-button>
               <el-button
                 v-if="scope.row.status === 1"
-                v-permisaction="['admin:sysUser:resetPassword']"
+                v-permisaction="['admin:sysBack:stop']"
                 size="mini"
                 type="text"
                 icon="el-icon-refresh-left"
-                @click="handleDelete(scope.row)"
+                @click="handleDisable(scope.row)"
               >
                 停用
               </el-button>
               <el-button
-                v-permisaction="['admin:sysUser:remove']"
+                v-permisaction="['admin:sysBack:remove']"
                 size="mini"
                 type="text"
                 icon="el-icon-delete"
@@ -119,7 +122,7 @@
             </template>
           </el-table-column>
         </el-table>
-
+        <!-- 分页 -->
         <pagination
           v-show="total > 0"
           :total="total"
@@ -148,16 +151,23 @@
         <!-- https://element.eleme.cn/#/zh-CN/component/upload -->
         <!-- https://element.eleme.cn/#/zh-CN/component/upload -->
         <el-upload
-          class="upload-demo"
-          action="https://jsonplaceholder.typicode.com/posts/"
-          :on-preview="handlePreview"
-          :on-remove="handleRemove"
+          class="avatar-uploader"
+          action="#"
+          drag
+          :limit="1"
+          accept="image/*"
+          :multiple="false"
           :auto-upload="false"
-          :file-list="fileList"
+          :on-change="handleFileUploadChange"
           list-type="picture"
         >
-          <el-button size="small" type="primary">点击上传</el-button>
-          <div slot="tip" class="el-upload__tip" style="color: red">只能上传jpg/png文件</div>
+          <i class="el-icon-upload" />
+          <div class="el-upload__text">
+            将图片类型文件拖到此处，或
+            <em>点击上传</em>
+          </div>
+          <!-- <el-button size="small" type="primary">点击上传</el-button> -->
+          <!-- <div slot="tip" class="el-upload__tip">只能上传图片类型的文件</div> -->
         </el-upload>
         <!-- <div slot="footer" class="dialog-footer">
           <el-button type="primary" @click="submitForm">确 定</el-button>
@@ -168,18 +178,21 @@
           <el-button @click="uploadCancel">取 消</el-button>
         </div>
       </el-dialog>
+
+      <el-image-viewer v-if="showViewer" :on-close="closeViewer" :url-list="[previewUrl]" />
     </template>
   </BasicLayout>
 </template>
 
 <script>
 // import { listBackApi, delBackApi, getBackApi, addBackApi, updateBackApi } from '@/api/admin/sys-back'
-import { listBackApi } from '@/api/admin/sys-back'
+import { listBackApi, uploadBackApi } from '@/api/admin/sys-back'
+import ElImageViewer from 'element-ui/packages/image/src/image-viewer'
 import { getToken } from '@/utils/auth'
 
 export default {
   name: 'SysBackManage',
-  components: {},
+  components: { ElImageViewer },
   data() {
     return {
       dialog: false,
@@ -236,16 +249,10 @@ export default {
       rules: {
         name: [{ required: true, message: '图片名称不能为空', trigger: 'blur' }]
       },
-      fileList: [
-        {
-          name: 'food.jpeg',
-          url: 'https://fuss10.elemecdn.com/3/63/4e7f3a15429bfda99bce42a18cdd1jpeg.jpeg?imageMogr2/thumbnail/360x360/format/webp/quality/100'
-        },
-        {
-          name: 'food2.jpeg',
-          url: 'https://fuss10.elemecdn.com/3/63/4e7f3a15429bfda99bce42a18cdd1jpeg.jpeg?imageMogr2/thumbnail/360x360/format/webp/quality/100'
-        }
-      ]
+      // 显示查看器
+      showViewer: false,
+      // 预览图片地址
+      previewUrl: ''
     }
   },
   created() {
@@ -255,30 +262,65 @@ export default {
     })
   },
   methods: {
-    handleRemove(file, fileList) {
-      console.log(file, fileList)
+    // 关闭查看器
+    closeViewer() {
+      this.showViewer = false
     },
-    handlePreview(file) {
-      console.log(file)
+    handlePreview(url) {
+      this.previewUrl = url
+      this.previewUrl && (this.showViewer = true)
     },
-    handleExceed(files, fileList) {
-      this.$message.warning(
-        `当前限制选择 3 个文件，本次选择了 ${files.length} 个文件，共选择了 ${files.length + fileList.length} 个文件`
-      )
-    },
-    beforeRemove(file, fileList) {
-      return this.$confirm(`确定移除 ${file.name}？`)
-    },
-    // 图片上传功能
-    uploadImage() {
-      console.log(123)
-      this.upload.open = true
+    // 更新事件
+    handleFileUploadChange(file) {
+      this.upload.file = file.raw
     },
     // 上传提交
-    uploadSubmitForm() {},
+    uploadSubmitForm() {
+      this.$refs['form'].validate((valid) => {
+        if (valid) {
+          // 创建FormData 文件传输必须的
+          const formData = new FormData()
+          formData.append('name', this.form.name) // 要提交给后台的文件,并且字段的key为name
+          formData.append('file', this.upload.file) // 要提交给后台的文件,并且字段的key为file
+          // 上传背景图
+          uploadBackApi(this.upload.file).then((response) => {
+            console.log('上传图片结果', response)
+            // 更新列表
+            this.getList()
+            this.upload.open = false
+          })
+        }
+      })
+      // const params = {
+      //   name: 'man',
+      //   file: this.upload.file.row
+      // }
+
+      // console.log(params)
+    },
     // 上传取消
     uploadCancel() {
       this.upload.open = false
+    },
+    // 图片上传功能
+    uploadImage() {
+      this.upload.open = true
+    },
+    // 执行禁用
+    handleDisable(row) {
+      console.log(row)
+      const Ids = (row.userId && [row.userId]) || this.ids
+      console.log(Ids)
+    },
+    // 查询参数列表
+    getList() {
+      this.loading = true
+      listBackApi(this.queryParams).then((response) => {
+        this.sysBackList = response.data.list
+        console.log(this.sysBackList)
+        this.total = response.data.count
+        this.loading = false
+      })
     },
     handleClose(done) {
       // if (this.loading) {
@@ -296,16 +338,6 @@ export default {
       //     }, 2000)
       //   })
       //   .catch(_ => {})
-    },
-    /** 查询参数列表 */
-    getList() {
-      this.loading = true
-      listBackApi(this.queryParams).then((response) => {
-        console.log(response)
-        this.sysBackList = response.data.list
-        this.total = response.data.count
-        this.loading = false
-      })
     },
     // 取消按钮
     cancel() {
@@ -420,7 +452,7 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       })
-        .then(function() {
+        .then(() => {
           // return delSysApi({ ids: Ids })
         })
         .then((response) => {
@@ -432,7 +464,7 @@ export default {
             this.msgError(response.msg)
           }
         })
-        .catch(function() {})
+        .catch(() => {})
     }
   }
 }
