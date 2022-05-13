@@ -1,6 +1,6 @@
 import request from '@/utils/request'
 
-// 查询SysApi列表
+// 查询背景列表
 export function listBackApi(query) {
   return request({
     url: '/api/v1/sys-background',
@@ -9,38 +9,29 @@ export function listBackApi(query) {
   })
 }
 
-// 查询SysApi详细
-export function getBackApi(id) {
+// 上传背景
+export function uploadBackApi(query) {
   return request({
-    url: '/api/v1/sys-background/' + id,
-    method: 'get'
-  })
-}
-
-// 新增SysApi
-export function addBackApi(data) {
-  return request({
-    url: '/api/v1/sys-background',
+    url: '/api/v1/sys-background/upload',
     method: 'post',
-    data: data
+    data: query
   })
 }
 
-// 修改SysApi
-export function updateBackApi(data) {
+// 禁用恢复
+export function backDisableApi(query) {
   return request({
-    url: '/api/v1/sys-background/' + data.id,
-    method: 'put',
-    data: data
+    url: '/api/v1/sys-background/status',
+    method: 'post',
+    data: query
   })
 }
 
-// 删除SysApi
-export function delBackApi(data) {
+// 删除
+export function backDeleteApi(query) {
   return request({
-    url: '/api/v1/sys-background',
-    method: 'delete',
-    data: data
+    url: '/api/v1/sys-background/delete',
+    method: 'post',
+    data: query
   })
 }
-
