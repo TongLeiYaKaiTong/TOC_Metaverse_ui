@@ -138,7 +138,7 @@
 
       <!-- 图片上传弹框 -->
       <el-dialog :title="upload.title" :visible.sync="upload.open" width="400px">
-        <el-form ref="form" :model="form" :rules="rules" label-width="80px">
+        <el-form ref="form" :model="form" :rules="rules" label-width="auto">
           <el-row>
             <el-col :span="18">
               <el-form-item label="图片名称" prop="name">
@@ -178,7 +178,7 @@
 
 <script>
 import ElImageViewer from 'element-ui/packages/image/src/image-viewer'
-import { listBackApi, uploadBackApi, backDisableApi, backDeleteApi } from '@/api/admin/sys-back'
+import { listBackApi, uploadBackApi, disableBackApi, deleteBackApi } from '@/api/admin/sys-back'
 
 export default {
   name: 'SysBackManage',
@@ -256,10 +256,10 @@ export default {
       this.confirmFun(
         '是否"' + text + '"编号为"' + ids + '"的数据项？',
         () => {
-          return backDisableApi({ ids, status })
+          return disableBackApi({ ids, status })
         },
         (response) => {
-          this.msgSuccess(response.msg)
+          this.msgSuccess(text + '成功')
           this.getList()
         },
         () => {
@@ -273,7 +273,7 @@ export default {
       this.confirmFun(
         '是否删除编号为"' + ids + '"的数据项？',
         () => {
-          return backDeleteApi({ ids })
+          return deleteBackApi({ ids })
         },
         (response) => {
           if (response.code === 200) {
@@ -302,6 +302,10 @@ export default {
     uploadSubmit() {
       this.$refs['form'].validate((valid) => {
         if (valid) {
+          if (!this.upload.file) {
+            this.msgError('请选择要上传的文件')
+            return
+          }
           // 创建FormData 文件传输必须的
           const formData = new FormData()
           formData.append('name', this.form.name) // 要提交给后台的文件,并且字段的key为name

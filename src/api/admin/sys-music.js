@@ -1,14 +1,5 @@
 import request from '@/utils/request'
 
-// 查询MusicApi列表
-export function listMusicApi(query) {
-  return request({
-    url: '/api/v1/sys-music',
-    method: 'get',
-    params: query
-  })
-}
-
 // 查询MusicApi详细
 export function getMusicApi(id) {
   return request({
@@ -44,3 +35,38 @@ export function delMusicApi(data) {
   })
 }
 
+// 查询背景列表
+export function listMusicApi(query) {
+  return request({
+    url: '/api/v1/sys-music',
+    method: 'get',
+    params: query
+  })
+}
+
+// 上传背景
+export function uploadMusicApi(query) {
+  return request({
+    url: '/api/v1/sys-music/upload',
+    method: 'post',
+    data: query
+  })
+}
+
+// 禁用恢复
+export function disableMusicApi(query) {
+  return request({
+    url: '/api/v1/sys-music/status',
+    method: 'post',
+    data: query
+  })
+}
+
+// 删除
+export function deleteMusicApi(query) {
+  return request({
+    url: '/api/v1/sys-music/delete',
+    method: 'post',
+    data: query
+  })
+}

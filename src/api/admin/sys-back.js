@@ -19,7 +19,7 @@ export function uploadBackApi(query) {
 }
 
 // 禁用恢复
-export function backDisableApi(query) {
+export function disableBackApi(query) {
   return request({
     url: '/api/v1/sys-background/status',
     method: 'post',
@@ -28,7 +28,7 @@ export function backDisableApi(query) {
 }
 
 // 删除
-export function backDeleteApi(query) {
+export function deleteBackApi(query) {
   return request({
     url: '/api/v1/sys-background/delete',
     method: 'post',
