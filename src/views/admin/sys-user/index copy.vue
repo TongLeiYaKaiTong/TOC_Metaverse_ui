@@ -33,7 +33,7 @@
               <el-form-item label="用户名称" prop="username">
                 <el-input
                   v-model="queryParams.username"
-                  placeholder="请输入登录名称"
+                  placeholder="请输入用户名称"
                   clearable
                   size="small"
                   style="width: 160px"
@@ -58,7 +58,12 @@
                   size="small"
                   style="width: 160px"
                 >
-                  <el-option v-for="dict in statusOptions" :key="dict.value" :label="dict.label" :value="dict.value" />
+                  <el-option
+                    v-for="dict in statusOptions"
+                    :key="dict.value"
+                    :label="dict.label"
+                    :value="dict.value"
+                  />
                 </el-select>
               </el-form-item>
               <el-form-item>
@@ -75,11 +80,9 @@
                   icon="el-icon-plus"
                   size="mini"
                   @click="handleAdd"
-                >
-                  新增
-                </el-button>
+                >新增</el-button>
               </el-col>
-              <!-- <el-col :span="1.5">
+              <el-col :span="1.5">
                 <el-button
                   v-permisaction="['admin:sysUser:edit']"
                   type="success"
@@ -87,10 +90,8 @@
                   size="mini"
                   :disabled="single"
                   @click="handleUpdate"
-                >
-                  修改
-                </el-button>
-              </el-col> -->
+                >修改</el-button>
+              </el-col>
               <el-col :span="1.5">
                 <el-button
                   v-permisaction="['admin:sysUser:remove']"
@@ -99,9 +100,7 @@
                   size="mini"
                   :disabled="multiple"
                   @click="handleDelete"
-                >
-                  删除
-                </el-button>
+                >删除</el-button>
               </el-col>
             </el-row>
 
@@ -113,19 +112,12 @@
               @sort-change="handleSortChang"
             >
               <el-table-column type="selection" width="45" align="center" />
-              <el-table-column label="编号" width="75" prop="userId" sortable="custom" align="center" />
-              <el-table-column
-                label="登录名"
-                width="105"
-                prop="username"
-                sortable="custom"
-                align="center"
-                :show-overflow-tooltip="true"
-              />
-              <el-table-column label="昵称" prop="nickname" :show-overflow-tooltip="true" align="center" />
-              <el-table-column label="部门" prop="dept.deptName" :show-overflow-tooltip="true" align="center" />
-              <el-table-column label="手机号" prop="phone" width="108" align="center" />
-              <el-table-column label="状态" width="80" sortable="custom" align="center">
+              <el-table-column label="编号" width="75" prop="userId" sortable="custom" />
+              <el-table-column label="登录名" width="105" prop="username" sortable="custom" :show-overflow-tooltip="true" />
+              <el-table-column label="昵称" prop="nickName" :show-overflow-tooltip="true" />
+              <el-table-column label="部门" prop="dept.deptName" :show-overflow-tooltip="true" />
+              <el-table-column label="手机号" prop="phone" width="108" />
+              <el-table-column label="状态" width="80" sortable="custom">
                 <template slot-scope="scope">
                   <el-switch
                     v-model="scope.row.status"
@@ -135,7 +127,12 @@
                   />
                 </template>
               </el-table-column>
-              <el-table-column label="创建时间" prop="createdAt" sortable="custom" width="155" align="center">
+              <el-table-column
+                label="创建时间"
+                prop="createdAt"
+                sortable="custom"
+                width="155"
+              >
                 <template slot-scope="scope">
                   <span>{{ parseTime(scope.row.createdAt) }}</span>
                 </template>
@@ -143,9 +140,9 @@
               <el-table-column
                 label="操作"
                 width="160"
+
                 fix="right"
                 class-name="small-padding fixed-width"
-                align="center"
               >
                 <template slot-scope="scope">
                   <el-button
@@ -154,9 +151,7 @@
                     type="text"
                     icon="el-icon-edit"
                     @click="handleUpdate(scope.row)"
-                  >
-                    修改
-                  </el-button>
+                  >修改</el-button>
                   <el-button
                     v-if="scope.row.userId !== 1"
                     v-permisaction="['admin:sysUser:remove']"
@@ -164,24 +159,20 @@
                     type="text"
                     icon="el-icon-delete"
                     @click="handleDelete(scope.row)"
-                  >
-                    删除
-                  </el-button>
+                  >删除</el-button>
                   <el-button
                     v-permisaction="['admin:sysUser:resetPassword']"
                     size="mini"
                     type="text"
                     icon="el-icon-key"
                     @click="handleResetPwd(scope.row)"
-                  >
-                    重置
-                  </el-button>
+                  >重置</el-button>
                 </template>
               </el-table-column>
             </el-table>
 
             <pagination
-              v-show="total > 0"
+              v-show="total>0"
               :total="total"
               :page.sync="queryParams.pageIndex"
               :limit.sync="queryParams.pageSize"
@@ -195,13 +186,17 @@
         <el-form ref="form" :model="form" :rules="rules" label-width="80px">
           <el-row>
             <el-col :span="12">
-              <el-form-item label="用户昵称" prop="nickname">
-                <el-input v-model="form.nickname" placeholder="请输入用户昵称" />
+              <el-form-item label="用户昵称" prop="nickName">
+                <el-input v-model="form.nickName" placeholder="请输入用户昵称" />
               </el-form-item>
             </el-col>
             <el-col :span="12">
               <el-form-item label="归属部门" prop="deptId">
-                <treeselect v-model="form.deptId" :options="deptOptions" placeholder="请选择归属部门" />
+                <treeselect
+                  v-model="form.deptId"
+                  :options="deptOptions"
+                  placeholder="请选择归属部门"
+                />
               </el-form-item>
             </el-col>
             <el-col :span="12">
@@ -227,16 +222,23 @@
             <el-col :span="12">
               <el-form-item label="用户性别">
                 <el-select v-model="form.sex" placeholder="请选择">
-                  <el-option v-for="dict in sexOptions" :key="dict.value" :label="dict.label" :value="dict.value" />
+                  <el-option
+                    v-for="dict in sexOptions"
+                    :key="dict.value"
+                    :label="dict.label"
+                    :value="dict.value"
+                  />
                 </el-select>
               </el-form-item>
             </el-col>
             <el-col :span="12">
               <el-form-item label="状态">
                 <el-radio-group v-model="form.status">
-                  <el-radio v-for="dict in statusOptions" :key="dict.value" :label="dict.value">{{
-                    dict.label
-                  }}</el-radio>
+                  <el-radio
+                    v-for="dict in statusOptions"
+                    :key="dict.value"
+                    :label="dict.value"
+                  >{{ dict.label }}</el-radio>
                 </el-radio-group>
               </el-form-item>
             </el-col>
@@ -300,9 +302,9 @@
           </div>
           <div slot="tip" class="el-upload__tip">
             <el-checkbox v-model="upload.updateSupport" />是否更新已经存在的用户数据
-            <el-link type="info" style="font-size: 12px" @click="importTemplate">下载模板</el-link>
+            <el-link type="info" style="font-size:12px" @click="importTemplate">下载模板</el-link>
           </div>
-          <div slot="tip" class="el-upload__tip" style="color: red">提示：仅允许导入“xls”或“xlsx”格式文件！</div>
+          <div slot="tip" class="el-upload__tip" style="color:red">提示：仅允许导入“xls”或“xlsx”格式文件！</div>
         </el-upload>
         <div slot="footer" class="dialog-footer">
           <el-button type="primary" @click="submitFileForm">确 定</el-button>
@@ -314,17 +316,7 @@
 </template>
 
 <script>
-import {
-  listUser,
-  getUser,
-  delUser,
-  addUser,
-  updateUser,
-  exportUser,
-  resetUserPwd,
-  changeUserStatus,
-  importTemplate
-} from '@/api/admin/sys-user'
+import { listUser, getUser, delUser, addUser, updateUser, exportUser, resetUserPwd, changeUserStatus, importTemplate } from '@/api/admin/sys-user'
 import { getToken } from '@/utils/auth'
 
 import { listPost } from '@/api/admin/sys-post'
@@ -399,12 +391,12 @@ export default {
         username: undefined,
         phone: undefined,
         status: undefined,
-        deptId: '/1/' // 进入默认为测试
+        deptId: undefined
       },
       // 表单校验
       rules: {
         username: [{ required: true, message: '用户名称不能为空', trigger: 'blur' }],
-        nickname: [{ required: true, message: '用户昵称不能为空', trigger: 'blur' }],
+        nickName: [{ required: true, message: '用户昵称不能为空', trigger: 'blur' }],
         deptId: [{ required: true, message: '归属部门不能为空', trigger: 'blur' }],
         password: [{ required: true, message: '用户密码不能为空', trigger: 'blur' }],
         email: [
@@ -427,13 +419,13 @@ export default {
   created() {
     this.getList()
     this.getTreeselect()
-    this.getDicts('sys_normal_disable').then((response) => {
+    this.getDicts('sys_normal_disable').then(response => {
       this.statusOptions = response.data
     })
-    this.getDicts('sys_user_sex').then((response) => {
+    this.getDicts('sys_user_sex').then(response => {
       this.sexOptions = response.data
     })
-    this.getConfigKey('sys_user_initPassword').then((response) => {
+    this.getConfigKey('sys_user_initPassword').then(response => {
       this.initPassword = response.data.configValue
     })
   },
@@ -441,16 +433,16 @@ export default {
     /** 查询用户列表 */
     getList() {
       this.loading = true
-      listUser(this.addDateRange(this.queryParams, this.dateRange)).then((response) => {
+      listUser(this.addDateRange(this.queryParams, this.dateRange)).then(response => {
         this.userList = response.data.list
-        // console.log('userList', this.userList)
         this.total = response.data.count
         this.loading = false
-      })
+      }
+      )
     },
     /** 查询部门下拉树结构 */
     getTreeselect() {
-      treeselect().then((response) => {
+      treeselect().then(response => {
         this.deptOptions = response.data
       })
     },
@@ -461,7 +453,6 @@ export default {
     },
     // 节点单击事件
     handleNodeClick(data) {
-      // console.log(data)
       this.queryParams.deptId = '/' + data.id + '/'
       this.getList()
     },
@@ -501,16 +492,13 @@ export default {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
+      }).then(function() {
+        return changeUserStatus(row)
+      }).then(() => {
+        this.msgSuccess(text + '成功')
+      }).catch(function() {
+        row.status = row.status === '2' ? '1' : '2'
       })
-        .then(() => {
-          return changeUserStatus(row)
-        })
-        .then(() => {
-          this.msgSuccess(text + '成功')
-        })
-        .catch(() => {
-          row.status = row.status === '2' ? '1' : '2'
-        })
     },
     // 取消按钮
     cancel() {
@@ -523,7 +511,7 @@ export default {
         userId: undefined,
         deptId: undefined,
         username: undefined,
-        nickname: undefined,
+        nickName: undefined,
         password: undefined,
         phone: undefined,
         email: undefined,
@@ -549,7 +537,7 @@ export default {
     },
     // 多选框选中数据
     handleSelectionChange(selection) {
-      this.ids = selection.map((item) => item.userId)
+      this.ids = selection.map(item => item.userId)
       this.single = selection.length !== 1
       this.multiple = !selection.length
     },
@@ -558,10 +546,10 @@ export default {
       this.reset()
       this.getTreeselect()
 
-      listPost({ pageSize: 1000 }).then((response) => {
+      listPost({ pageSize: 1000 }).then(response => {
         this.postOptions = response.data.list
       })
-      listRole({ pageSize: 1000 }).then((response) => {
+      listRole({ pageSize: 1000 }).then(response => {
         this.roleOptions = response.data.list
       })
       this.open = true
@@ -573,16 +561,16 @@ export default {
       this.reset()
 
       const userId = row.userId || this.ids
-      getUser(userId).then((response) => {
+      getUser(userId).then(response => {
         this.form = response.data
         this.open = true
         this.title = '修改用户'
         this.form.password = ''
       })
-      listPost({ pageSize: 1000 }).then((response) => {
+      listPost({ pageSize: 1000 }).then(response => {
         this.postOptions = response.data.list
       })
-      listRole({ pageSize: 1000 }).then((response) => {
+      listRole({ pageSize: 1000 }).then(response => {
         this.roleOptions = response.data.list
       })
     },
@@ -591,24 +579,22 @@ export default {
       this.$prompt('请输入"' + row.username + '"的新密码', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消'
-      })
-        .then(({ value }) => {
-          resetUserPwd(row.userId, value).then((response) => {
-            if (response.code === 200) {
-              this.msgSuccess(response.msg)
-            } else {
-              this.msgError(response.msg)
-            }
-          })
+      }).then(({ value }) => {
+        resetUserPwd(row.userId, value).then(response => {
+          if (response.code === 200) {
+            this.msgSuccess(response.msg)
+          } else {
+            this.msgError(response.msg)
+          }
         })
-        .catch(() => {})
+      }).catch(() => {})
     },
     /** 提交按钮 */
-    submitForm() {
-      this.$refs['form'].validate((valid) => {
+    submitForm: function() {
+      this.$refs['form'].validate(valid => {
         if (valid) {
           if (this.form.userId !== undefined) {
-            updateUser(this.form).then((response) => {
+            updateUser(this.form).then(response => {
               if (response.code === 200) {
                 this.msgSuccess(response.msg)
                 this.open = false
@@ -618,7 +604,7 @@ export default {
               }
             })
           } else {
-            addUser(this.form).then((response) => {
+            addUser(this.form).then(response => {
               if (response.code === 200) {
                 this.msgSuccess(response.msg)
                 this.open = false
@@ -638,20 +624,17 @@ export default {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
-      })
-        .then(() => {
-          return delUser({ ids: Ids })
-        })
-        .then((response) => {
-          if (response.code === 200) {
-            this.msgSuccess(response.msg)
-            this.open = false
-            this.getList()
-          } else {
-            this.msgError(response.msg)
-          }
-        })
-        .catch(() => {})
+      }).then(function() {
+        return delUser({ 'ids': Ids })
+      }).then((response) => {
+        if (response.code === 200) {
+          this.msgSuccess(response.msg)
+          this.open = false
+          this.getList()
+        } else {
+          this.msgError(response.msg)
+        }
+      }).catch(function() {})
     },
     /** 导出按钮操作 */
     handleExport() {
@@ -660,14 +643,11 @@ export default {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
-      })
-        .then(() => {
-          return exportUser(queryParams)
-        })
-        .then((response) => {
-          this.download(response.msg)
-        })
-        .catch(() => {})
+      }).then(function() {
+        return exportUser(queryParams)
+      }).then(response => {
+        this.download(response.msg)
+      }).catch(function() {})
     },
     /** 导入按钮操作 */
     handleImport() {
@@ -676,7 +656,7 @@ export default {
     },
     /** 下载模板操作 */
     importTemplate() {
-      importTemplate().then((response) => {
+      importTemplate().then(response => {
         this.download(response.msg)
       })
     },

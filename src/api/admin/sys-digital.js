@@ -9,6 +9,15 @@ export function listDigitalApi(query) {
   })
 }
 
+// 删除
+export function deleteDigitalApi(data) {
+  return request({
+    url: '/api/v1/sys-digital/delete',
+    method: 'post',
+    data: data
+  })
+}
+
 // 查询SysApi详细
 export function getDigitalApi(id) {
   return request({

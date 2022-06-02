@@ -4,7 +4,12 @@
     <template #wrapper>
       <el-card class="box-card">
         <!-- 输入栏 -->
-        <el-form ref="queryForm" :model="queryParams" :inline="true" label-width="68px">
+        <el-form ref="queryForm" :model="queryParams" :inline="true" align="center">
+          <el-form-item label="状态" prop="status">
+            <el-select v-model="queryParams.status" placeholder="图片状态" clearable size="small" style="width: 160px">
+              <el-option v-for="dict in statusOptions" :key="dict.value" :label="dict.label" :value="dict.value" />
+            </el-select>
+          </el-form-item>
           <el-form-item label="图片名称" prop="name">
             <el-input
               v-model="queryParams.name"
@@ -14,11 +19,6 @@
               style="width: 160px"
               @keyup.enter.native="handleQuery"
             />
-          </el-form-item>
-          <el-form-item label="状态" prop="status">
-            <el-select v-model="queryParams.status" placeholder="图片状态" clearable size="small" style="width: 160px">
-              <el-option v-for="dict in statusOptions" :key="dict.value" :label="dict.label" :value="dict.value" />
-            </el-select>
           </el-form-item>
           <el-form-item>
             <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
@@ -93,7 +93,7 @@
           <el-table-column label="大小" prop="size" align="center" />
           <el-table-column label="使用次数" prop="use_num" align="center" />
           <el-table-column label="上传人" prop="up_name" align="center" />
-          <el-table-column label="状态" width="80" sortable="custom">
+          <el-table-column label="状态" width="80" sortable="custom" align="center">
             <template slot-scope="scope">
               <el-switch
                 v-model="scope.row.status"
@@ -140,7 +140,12 @@
       <el-dialog :title="upload.title" :visible.sync="upload.open" width="400px">
         <el-form ref="form" :model="form" :rules="rules" label-width="auto">
           <el-row>
-            <el-col :span="18">
+            <el-col :span="22">
+              <el-form-item label="编号" prop="index">
+                <el-input v-model.number="form.index" placeholder="请输入编号" />
+              </el-form-item>
+            </el-col>
+            <el-col :span="22">
               <el-form-item label="图片名称" prop="name">
                 <el-input v-model="form.name" placeholder="请输入图片名称" />
               </el-form-item>
@@ -148,15 +153,16 @@
           </el-row>
         </el-form>
         <el-upload
-          ref="image-upload"
+          ref="upload-ref"
           class="avatar-uploader"
           action="#"
           drag
-          :limit="1"
+          :limit="2"
           accept="image/*"
           :multiple="false"
           :auto-upload="false"
           :on-change="uploadChange"
+          :file-list="form.fileList"
           list-type="picture"
         >
           <i class="el-icon-upload" />
@@ -213,10 +219,19 @@ export default {
         title: '图片上传'
       },
       // 表单参数
-      form: {},
+      form: {
+        fileList: []
+      },
       // 表单校验
       rules: {
-        name: [{ required: true, message: '图片名称不能为空', trigger: 'blur' }]
+        index: [
+          { required: true, message: '编号不能为空', trigger: 'blur' },
+          { type: 'number', message: '编号必须为数字值' }
+        ],
+        name: [
+          { required: true, message: '图片名称不能为空', trigger: 'blur' },
+          { max: 20, message: '图片名称：长度限制20汉字', trigger: 'blur' }
+        ]
       },
       // 显示查看器
       showViewer: false,
@@ -295,8 +310,9 @@ export default {
       this.previewUrl && (this.showViewer = true)
     },
     // 上传更新
-    uploadChange(file) {
+    uploadChange(file, fileList) {
       this.upload.file = file.raw
+      if (fileList.length > 0) this.form.fileList = [fileList[fileList.length - 1]] // 这一步，是 展示最后一次选择文件
     },
     // 上传提交
     uploadSubmit() {
@@ -308,6 +324,7 @@ export default {
           }
           // 创建FormData 文件传输必须的
           const formData = new FormData()
+          formData.append('index', this.form.index) // 要提交给后台的文件,并且字段的key为index
           formData.append('name', this.form.name) // 要提交给后台的文件,并且字段的key为name
           formData.append('file', this.upload.file) // 要提交给后台的文件,并且字段的key为file
           // 上传背景图
@@ -326,9 +343,11 @@ export default {
     // 图片上传重置
     uploadReset() {
       this.form = {
-        name: undefined
+        index: undefined,
+        name: undefined,
+        fileList: []
       }
-      this.$refs['image-upload']?.clearFiles()
+      // this.$refs['upload-ref']?.clearFiles()
       this.resetForm('form')
     },
     // 图片上传取消

@@ -4,7 +4,12 @@
     <template #wrapper>
       <el-card class="box-card">
         <!-- 输入栏 -->
-        <el-form ref="queryForm" :model="queryParams" :inline="true" label-width="68px">
+        <el-form ref="queryForm" :model="queryParams" :inline="true" align="center">
+          <el-form-item label="状态" prop="status">
+            <el-select v-model="queryParams.status" placeholder="音乐状态" clearable size="small" style="width: 160px">
+              <el-option v-for="dict in statusOptions" :key="dict.value" :label="dict.label" :value="dict.value" />
+            </el-select>
+          </el-form-item>
           <el-form-item label="音乐名称" prop="keyword">
             <el-input
               v-model="queryParams.keyword"
@@ -15,14 +20,9 @@
               @keyup.enter.native="handleQuery"
             />
           </el-form-item>
-          <el-form-item label="状态" prop="status">
-            <el-select v-model="queryParams.status" placeholder="音乐状态" clearable size="small" style="width: 160px">
-              <el-option v-for="dict in statusOptions" :key="dict.value" :label="dict.label" :value="dict.value" />
-            </el-select>
-          </el-form-item>
           <el-form-item>
             <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
-            <el-button type="primary" icon="el-icon-upload" size="mini" @click="uploadImage">上传</el-button>
+            <el-button type="primary" icon="el-icon-upload" size="mini" @click="uploadMusic">上传</el-button>
           </el-form-item>
         </el-form>
 
@@ -85,11 +85,11 @@
             :show-overflow-tooltip="true"
           />
           <el-table-column label="歌手/作曲" prop="singer" align="center" />
-          <el-table-column label="时长" prop="duration" align="center" />
+          <el-table-column label="音乐时长" prop="duration" align="center" />
           <el-table-column label="格式" prop="type" align="center" />
           <el-table-column label="使用次数" prop="usedtimes" align="center" />
           <el-table-column label="上传人" prop="up_name" align="center" />
-          <el-table-column label="状态" width="80" sortable="custom">
+          <el-table-column label="状态" width="80" sortable="custom" align="center">
             <template slot-scope="scope">
               <el-switch
                 v-model="scope.row.status"
@@ -132,18 +132,16 @@
         />
       </el-card>
 
-      <!-- 音乐上传弹框 -->
+      <!-- 音乐上传弹框 :close-on-click-modal="false" -->
       <el-dialog :title="upload.title" :visible.sync="upload.open" width="400px">
         <el-form ref="form" :model="form" :rules="rules" label-width="auto">
           <el-row>
-            <el-col :span="20">
+            <el-col :span="22">
               <el-form-item label="歌名/曲名" prop="title">
                 <el-input v-model="form.title" placeholder="请输入歌名/曲名" />
               </el-form-item>
             </el-col>
-          </el-row>
-          <el-row>
-            <el-col :span="20">
+            <el-col :span="22">
               <el-form-item label="演唱/作曲" prop="singer">
                 <el-input v-model="form.singer" placeholder="请输入演唱/作曲" />
               </el-form-item>
@@ -151,15 +149,36 @@
           </el-row>
         </el-form>
         <el-upload
-          ref="image-upload"
+          ref="upload-ref2"
           class="avatar-uploader"
           action="#"
           drag
-          :limit="1"
-          accept="audio/*"
+          :limit="2"
+          accept="image/*"
+          :multiple="false"
+          :auto-upload="false"
+          :on-change="uploadChange2"
+          :file-list="form.fileList2"
+          list-type="picture"
+        >
+          <i class="el-icon-upload" />
+          <div class="el-upload__text">
+            将封面图片文件拖到此处，或
+            <em>点击上传</em>
+          </div>
+        </el-upload>
+        <br>
+        <el-upload
+          ref="upload-ref"
+          class="avatar-uploader"
+          action="#"
+          drag
+          :limit="2"
+          accept="audio/mp3"
           :multiple="false"
           :auto-upload="false"
           :on-change="uploadChange"
+          :file-list="form.fileList"
           list-type="fileList"
         >
           <i class="el-icon-upload" />
@@ -167,25 +186,23 @@
             将音乐类型文件拖到此处，或
             <em>点击上传</em>
           </div>
+          <div slot="tip" class="el-upload__tip" style="color: red">音乐只能上传mp3格式的文件</div>
         </el-upload>
         <div slot="footer" class="dialog-footer">
           <el-button type="primary" @click="uploadSubmit">确 定</el-button>
           <el-button @click="uploadCancel">取 消</el-button>
         </div>
       </el-dialog>
-      <!-- 预览界面 -->
-      <el-image-viewer v-if="showViewer" :on-close="closeViewer" :url-list="[previewUrl]" />
     </template>
   </BasicLayout>
 </template>
 
 <script>
-import ElImageViewer from 'element-ui/packages/image/src/image-viewer'
 import { listMusicApi, uploadMusicApi, disableMusicApi, deleteMusicApi } from '@/api/admin/sys-music'
 
 export default {
   name: 'SysMusicManage',
-  components: { ElImageViewer },
+  components: {},
   data() {
     return {
       loading: true,
@@ -216,16 +233,21 @@ export default {
         title: '音乐上传'
       },
       // 表单参数
-      form: {},
+      form: {
+        fileList: [],
+        fileList2: []
+      },
       // 表单校验
       rules: {
-        title: [{ required: true, message: '歌名/曲名不能为空', trigger: 'blur' }],
-        singer: [{ required: true, message: '演唱/作曲不能为空', trigger: 'blur' }]
-      },
-      // 显示查看器
-      showViewer: false,
-      // 预览音乐地址
-      previewUrl: ''
+        title: [
+          { required: true, message: '歌名/曲名不能为空', trigger: 'blur' },
+          { max: 100, message: '音乐名称：长度限制100字符', trigger: 'blur' }
+        ],
+        singer: [
+          { required: true, message: '演唱/作曲不能为空', trigger: 'blur' },
+          { max: 50, message: '歌手/作曲：长度限制50字符', trigger: 'blur' }
+        ]
+      }
     }
   },
   created() {
@@ -233,6 +255,7 @@ export default {
     this.getList()
     // 查询类型
     this.getDicts('sys_job_status').then((response) => {
+      console.log(response.data)
       this.statusOptions = response.data
     })
   },
@@ -289,25 +312,26 @@ export default {
         }
       )
     },
-    // 关闭查看器
-    closeViewer() {
-      this.showViewer = false
-    },
-    // 执行预览
-    handlePreview(url) {
-      this.previewUrl = url
-      this.previewUrl && (this.showViewer = true)
+    // 上传更新
+    uploadChange(file, fileList) {
+      this.upload.file = file.raw
+      if (fileList.length > 0) this.form.fileList = [fileList[fileList.length - 1]] // 这一步，是 展示最后一次选择文件
     },
     // 上传更新
-    uploadChange(file) {
-      this.upload.file = file.raw
+    uploadChange2(file, fileList) {
+      this.upload.file2 = file.raw
+      if (fileList.length > 0) this.form.fileList2 = [fileList[fileList.length - 1]] // 这一步，是 展示最后一次选择文件
     },
     // 上传提交
     uploadSubmit() {
       this.$refs['form'].validate((valid) => {
         if (valid) {
           if (!this.upload.file) {
-            this.msgError('请选择要上传的文件')
+            this.msgError('请选择要上传的音乐')
+            return
+          }
+          if (!this.upload.file2) {
+            this.msgError('请选择要上传的封面')
             return
           }
           // 创建FormData 文件传输必须的
@@ -315,6 +339,7 @@ export default {
           formData.append('title', this.form.title) // 要提交给后台的文件,并且字段的key为title
           formData.append('singer', this.form.singer) // 要提交给后台的文件,并且字段的key为singer
           formData.append('file', this.upload.file) // 要提交给后台的文件,并且字段的key为file
+          formData.append('cover', this.upload.file2) // 要提交给后台的文件,并且字段的key为file
           // 上传背景图
           uploadMusicApi(formData).then((response) => {
             if (response.code === 200) {
@@ -331,9 +356,12 @@ export default {
     // 音乐上传重置
     uploadReset() {
       this.form = {
-        name: undefined
+        name: undefined,
+        singer: undefined,
+        fileList: [],
+        fileList2: []
       }
-      this.$refs['image-upload']?.clearFiles()
+      // this.$refs['upload-ref']?.clearFiles()
       this.resetForm('form')
     },
     // 音乐上传取消
@@ -342,7 +370,7 @@ export default {
       this.uploadReset()
     },
     // 音乐上传功能
-    uploadImage() {
+    uploadMusic() {
       this.uploadReset()
       this.upload.open = true
     },

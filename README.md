@@ -98,8 +98,8 @@ At the same time, a series of tutorials including videos and documents are provi
 ```bash
 
 # Create a development directory
-mkdir goadmin
-cd goadmin
+mkdir DGMetaverse
+cd DGMetaverse
 ```
 
 ### Get the code
